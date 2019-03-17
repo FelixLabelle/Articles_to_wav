@@ -3,12 +3,12 @@ import PyPDF2
 import time
 import xml.etree.ElementTree as ET
 import re
+import argparse
 
 # https://www.w3.org/TR/speech-synthesis/
-# https://stackoverflow.com/questions/14698227/is-there-some-character-i-can-insert-to-get-a-longer-pause-with-sapi5-tts
 # TODO: Add way to easily modify the voice 
 class SSML_Generator:
-	def __init__(self,pause = 150):
+	def __init__(self,pause):
 		self.pause = pause
 		
 	def __call__(self,text):
@@ -28,16 +28,15 @@ class SSML_Generator:
 	# Nice to have: Transform acronyms into their pronunciation (See say as tag)
 	
 class SpeechToWav:
-	def __init__(self):
+	def __init__(self,pause,engineRate):
 		self.engine = CreateObject("SAPI.SpVoice")
 		self.stream = CreateObject("SAPI.SpFileStream")
-		self.SSML_generator = SSML_Generator()
+		self.SSML_generator = SSML_Generator(pause)
 		# This import has to be done in a specific order, otherwise Windows is not happy
 		from comtypes.gen import SpeechLib
 		# Because of that, below is a work around to use its functions throughout the object.
 		self.SpeechLib = SpeechLib
-		self.engine.Rate = -2
-		self.pause_time_in_ms = 30
+		self.engine.Rate = engineRate
 		
 	def __call__(self,text,outputFile):
 		# https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ms723606(v%3Dvs.85)
@@ -62,29 +61,26 @@ class TextExtractor:
 	def __call__(self,inputFile):
 		# TODO: Better seperate headers and columns, especially on the first page
 		# TODO: Better recognize when the citations are going to occur and cut them out
-		pdfFileObj = open(inputFile + '.pdf','rb')     #'rb' for read binary mode
+		pdfFileObj = open(inputFile + '.pdf','rb')	 #'rb' for read binary mode
 		pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
 		extractedText = """"""
 		for page in range(0,pdfReader.numPages):
 			extractedText += pdfReader.getPage(page).extractText()
 		return extractedText
+
+def parser():
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-f', '--file',required=True)
+	parser.add_argument('-r', '--engineRate', nargs = '?', type=int,default = -2)
+	parser.add_argument('-p', '--pause', nargs = '?', type=int, default = 150)
+	args = parser.parse_args()
+
+	input_file = args.file
+	output_file = input_file
+	pdfExtractor = TextExtractor()
+	audioConverter = SpeechToWav(args.pause,args.engineRate)
+	audioConverter(text = pdfExtractor(inputFile = input_file),outputFile = output_file)
 	
-
-# TODO: Add an easy way to interface with files (CLI?)
-# https://blog.sicara.com/perfect-python-command-line-interfaces-7d5d4efad6a2
-
-input_file = "test"
-output_file = input_file
-pdfExtractor = TextExtractor()
-audioConverter = SpeechToWav()
-audioConverter(text = pdfExtractor(inputFile = input_file),outputFile = output_file)
-"""
-
-fle = "hw"
-sg = SSML_Generator()
-a = sg(["Hello","World","Extended","Test"])
-ac = SpeechToWav()
-#ET.dump(a)
-ac("Hello world, here is an extended test.\n This is the second line",fle)
-"""
-
+if __name__ == '__main__':
+	parser()
+	
