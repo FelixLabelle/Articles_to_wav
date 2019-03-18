@@ -4,6 +4,9 @@ import time
 import xml.etree.ElementTree as ET
 import re
 import argparse
+# TODO: Make it cross system by removing dependency on comtypes
+# (https://stackoverflow.com/questions/39014468/how-to-save-the-output-of-pyttsx-to-wav-file)
+# https://pypi.org/project/pyttsx3/ (looks unsupported..)
 
 # https://www.w3.org/TR/speech-synthesis/
 # TODO: Add way to easily modify the voice 
@@ -24,7 +27,14 @@ class SSML_Generator:
 
 	def _header(self):
 		return ET.Element("speak",{"version":"1.0", "xmlns":"http://www.w3.org/2001/10/synthesis", "xml:lang":"en-US"})
-
+	
+	# TODO: Add rate https://docs.microsoft.com/en-us/cortana/skills/speech-synthesis-markup-language#prosody-element
+	def _rate(self)
+		pass
+	
+	# TODO: Add pitch 
+	def _pitch(self)
+		pass
 	# Nice to have: Transform acronyms into their pronunciation (See say as tag)
 	
 class SpeechToWav:
@@ -37,7 +47,11 @@ class SpeechToWav:
 		# Because of that, below is a work around to use its functions throughout the object.
 		self.SpeechLib = SpeechLib
 		self.engine.Rate = engineRate
-		
+	
+	# Add option to change voice
+	def change_voice(self,voice_id):
+		pass
+	
 	def __call__(self,text,outputFile):
 		# https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ms723606(v%3Dvs.85)
 		self.stream.Open(outputFile + ".wav", self.SpeechLib.SSFMCreateForWrite)
@@ -45,21 +59,20 @@ class SpeechToWav:
 		text = self._text_processing(text)
 		text = self.SSML_generator(text)
 		text = ET.tostring(text,encoding='utf8', method='xml').decode('utf-8')
-		# Replace with SSML file and flag
 		self.engine.speak(text)
 		self.stream.Close()
 	
 	
 	def _text_processing(self,text):
 		""" Used to remove side effects from columns, the new lines add bizzare pauses """
-		return re.findall(r"[\w']+", text) #text.replace("\n", "").split(",")
+		return re.findall(r"[\w']+", text)
 
 class TextExtractor:
 	def __init__(self):
 		pass
 		
 	def __call__(self,inputFile):
-		# TODO: Better seperate headers and columns, especially on the first page
+		# TODO: Find good ways to identify the layout and different sections
 		# TODO: Better recognize when the citations are going to occur and cut them out
 		pdfFileObj = open(inputFile + '.pdf','rb')	 #'rb' for read binary mode
 		pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
