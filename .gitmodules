@@ -1,0 +1,3 @@
+[submodule "cmudict-ipa"]
+	path = cmudict-ipa
+	url = https://github.com/FelixLabelle/cmudict-ipa.git
