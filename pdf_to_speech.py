@@ -57,7 +57,7 @@ class SSML_Generator:
 	
 	def _pronounce(self,word,parent_tag):
 		if word in self.phonemeDict:
-			sys.stdout.buffer.write(self.phonemeDict[word].encode("utf-8"))
+			print(self.phonemeDict[word])
 			return ET.fromstring("<phoneme alphabet=\"ipa\" ph=\"" + self.phonemeDict[word] + "\"> </phoneme>")#ET.SubElement(parent_tag,"phoneme",{"alphabet":"ipa","ph":self.phonemeDict[word]})#<phoneme alphabet="string" ph="string"></phoneme>
 		else:
 			return parent_tag
