@@ -29,14 +29,13 @@ class SSML_Generator:
 			for line in f:
 				tok = line.split()
 				#print(len(tok))
-				phonemeDict[tok[0].lower()] = tok[1].lower()
+				phonemeDict[tok[0].lower()] = tok[1].lower().rstrip(',') # Dirty hack
 		return phonemeDict
 	
 	def __call__(self,text):
 		SSML_document = self._header()
 		for utterance in text:
 			parent_tag = self._pronounce(utterance,SSML_document)
-			#parent_tag.tail = self._pause(parent_tag)
 			SSML_document.append(parent_tag)
 		ET.dump(SSML_document)
 		return SSML_document
@@ -55,12 +54,13 @@ class SSML_Generator:
 	def _pitch(self):
 		pass
 	
+	# I think there is something wrong with the way words are being tacked on
 	def _pronounce(self,word,parent_tag):
 		if word in self.phonemeDict:
-			print(self.phonemeDict[word])
-			return ET.fromstring("<phoneme alphabet=\"ipa\" ph=\"" + self.phonemeDict[word] + "\"> </phoneme>")#ET.SubElement(parent_tag,"phoneme",{"alphabet":"ipa","ph":self.phonemeDict[word]})#<phoneme alphabet="string" ph="string"></phoneme>
+			#print(word, self.phonemeDict[word])
+			return ET.fromstring('<phoneme alphabet="ipa" ph=\'' + self.phonemeDict[word] + '\'> </phoneme>')#ET.SubElement(parent_tag,"phoneme",{"alphabet":"ipa","ph":self.phonemeDict[word]})#<phoneme alphabet="string" ph="string"></phoneme>
 		else:
-			return parent_tag
+			return self.
 	# Nice to have: Transform acronyms into their pronunciation (See say as tag)
 	
 class SpeechToWav:
@@ -122,12 +122,14 @@ def parser():
 	audioConverter(text = pdfExtractor(inputFile = input_file),outputFile = output_file)
 	
 if __name__ == '__main__':
-	#parser()
+	parser()
+	'''
 	#input_file = args.file
 	output_file = "hwet"
 	#pdfExtractor = TextExtractor()
 	cwd = os.getcwd()
-	phonetic_lib_dir = os.path.join(cwd,"cmudict-ipa")
+	phonetic_lib_dir = cwd #os.path.join(cwd,"cmudict-ipa")
 	audioConverter = SpeechToWav(150,-2,os.path.join(phonetic_lib_dir,"cmudict-0.7b-ipa.txt"))
-	audioConverter(text = "Hello world extended test",outputFile = output_file)
+	audioConverter(text = "Hello world, here is an extended test",outputFile = output_file)
+	'''
 	
